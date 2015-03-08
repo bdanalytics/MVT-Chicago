@@ -1,0 +1,166 @@
+---
+# Get YAML keywords from myYAML_ref.Rmd
+title: "MVT-Chicago: <Predicted attribute> <regression/classification>"
+author: "bdanalytics"
+pandoc_args: ["+RTS", "-K64M", "-RTS"]
+
+# Choose one:
+output:
+    html_document:
+        keep_md: yes
+
+# output:
+#   pdf_document:
+#     fig_width: 8
+#     highlight: zenburn
+#     #keep_md: yes
+#     keep_tex: yes
+#     number_sections: yes
+#     toc: yes
+---
+
+**  **    
+**Date: `r format(Sys.time(), "(%a) %b %d, %Y")`**    
+
+# Introduction:  
+
+Data: 
+Source: 
+    Training:   https://courses.edx.org/c4x/MITx/15.071x_2/asset/mvtWeek1.csv  
+    New:        <prdct_url>  
+Time period: 
+
+```{r set_global_options_wd, echo=FALSE}
+setwd("~/Documents/Work/Courses/MIT/Analytics_Edge_15_071x/Assignments/HW1_MVT_Chicago")
+```
+
+# Synopsis:
+
+Based on analysis utilizing <> techniques, <conclusion heading>:  
+
+### ![](<filename>.png)
+
+## Potential next steps include:
+
+# Analysis: 
+```{r set_global_options}
+rm(list=ls())
+set.seed(12345)
+options(stringsAsFactors=FALSE)
+source("~/Dropbox/datascience/R/mydsutils.R")
+source("~/Dropbox/datascience/R/myplot.R")
+source("~/Dropbox/datascience/R/mypetrinet.R")
+# Gather all package requirements here
+#suppressPackageStartupMessages(require())
+
+#require(sos); findFn("pinv", maxPages=2, sortby="MaxScore")
+
+# Analysis sepcific global variables
+glb_separate_predict_dataset <- FALSE
+
+script_df <- data.frame(chunk_label="import_data", chunk_step_major=1, chunk_step_minor=0)
+print(script_df)
+```
+
+## Step ``r script_df[nrow(script_df), "chunk_step_major"]``: import data
+```{r import_data, cache=TRUE}
+entity_df <- myimport_data(
+    url="https://courses.edx.org/c4x/MITx/15.071x_2/asset/mvtWeek1.csv", 
+    print_diagn=TRUE)
+if (glb_separate_predict_dataset) {
+    predict_df <- myimport_data(
+        url="<prdct_url>", 
+        print_diagn=TRUE)
+} else {
+    predict_df <- entity_df[sample(1:nrow(entity_df), nrow(entity_df) / 1000),]
+    myprint_df(predict_df)
+    str(predict_df)
+}         
+
+script_df <- rbind(script_df, 
+                   data.frame(chunk_label="inspect_data", 
+                              chunk_step_major=max(script_df$chunk_step_major)+1, 
+                              chunk_step_minor=1))
+print(script_df)
+```
+
+### Step ``r script_df[nrow(script_df), "chunk_step_major"]``.``r script_df[nrow(script_df), "chunk_step_minor"]``: inspect data
+```{r inspect_data_1, cache=TRUE}
+#print(str(entity_df))
+#View(entity_df)
+
+# List info gathered for various columns
+# steps:
+# date:
+# interval:
+
+print(summary(entity_df))
+print(summary(predict_df))
+
+#pairs(subset(entity_df, select=-c(col_symbol)))
+
+#   Histogram of predictor in entity_df & predict_df
+# Check for predict_df & entity_df features range mismatches
+
+# Create new features that help diagnostics
+#   Convert factors to dummy variables
+#   Build splines   require(splines); bsBasis <- bs(training$age, df=3)
+
+script_df <- rbind(script_df, 
+                   data.frame(chunk_label="extract_features", 
+                              chunk_step_major=max(script_df$chunk_step_major)+1, 
+                              chunk_step_minor=0))
+print(script_df)
+```
+
+## Step ``r script_df[nrow(script_df), "chunk_step_major"]``: extract features
+```{r extract_features, cache=TRUE}
+
+# script_df <- rbind(script_df, 
+#                    data.frame(chunk_label="extract_features", 
+#                               chunk_step_major=max(script_df$chunk_step_major)+1, 
+#                               chunk_step_minor=0))
+print(script_df)
+```
+
+Null Hypothesis ($\sf{H_{0}}$): mpg is not impacted by am_fctr.  
+The variance by am_fctr appears to be independent. 
+```{r q1, cache=TRUE}
+# print(t.test(subset(cars_df, am_fctr == "automatic")$mpg, 
+#              subset(cars_df, am_fctr == "manual")$mpg, 
+#              var.equal=FALSE)$conf)
+```
+We reject the null hypothesis i.e. we have evidence to conclude that am_fctr impacts mpg (95% confidence). Manual transmission is better for miles per gallon versus automatic transmission.
+
+## remove nearZeroVar features (not much variance)
+#require(reshape)
+#var_features_df <- melt(summaryBy(. ~ factor(0), data=entity_df[, features_lst], 
+#                             FUN=var, keep.names=TRUE), 
+#                             variable_name=c("feature"))
+#names(var_features_df)[2] <- "var"
+#print(var_features_df[order(var_features_df$var), ])
+# summaryBy ignores factors whereas nearZeroVar inspects factors
+
+# k_fold <- 5
+# entity_df[order(entity_df$classe, 
+#                   entity_df$user_name, 
+#                   entity_df$my.rnorm),"my.cv_ix"] <- 
+#     rep(1:k_fold, length.out=nrow(entity_df))
+# summaryBy(X ~ my.cv_ix, data=entity_df, FUN=length)
+# tapply(entity_df$X, list(entity_df$classe, entity_df$user_name, 
+#                            entity_df$my.cv_ix), length)
+
+#require(DAAG)
+#entity_df$classe.proper <- as.numeric(entity_df$classe == "A")
+#rnorm.glm <- glm(classe.proper ~ rnorm, family=binomial, data=entity_df)
+#cv.binary(rnorm.glm, nfolds=k_fold, print.details=TRUE)
+#result <- cv.lm(df=entity_df, form.lm=formula(classe ~ rnorm), 
+#                    m=k_fold, seed=12345, printit=TRUE)
+
+#plot(mdl_1$finalModel, uniform=TRUE, main="base")
+#text(mdl_1$finalModel, use.n=TRUE, all=TRUE, cex=0.8)
+
+
+```{r print_sessionInfo, echo=FALSE}
+sessionInfo()
+```
