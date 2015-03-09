@@ -32,7 +32,7 @@ source("~/Dropbox/datascience/R/mydsutils.R")
 source("~/Dropbox/datascience/R/myplot.R")
 source("~/Dropbox/datascience/R/mypetrinet.R")
 # Gather all package requirements here
-#suppressPackageStartupMessages(require())
+suppressPackageStartupMessages(require(plyr))
 
 #require(sos); findFn("pinv", maxPages=2, sortby="MaxScore")
 
@@ -52,7 +52,8 @@ print(script_df)
 
 ```r
 entity_df <- myimport_data(
-    url="https://courses.edx.org/c4x/MITx/15.071x_2/asset/mvtWeek1.csv", 
+    url="https://courses.edx.org/c4x/MITx/15.071x_2/asset/mvtWeek1.csv",
+    comment="entity_df",
     print_diagn=TRUE)
 ```
 
@@ -113,18 +114,21 @@ entity_df <- myimport_data(
 ##  $ Year               : int  2012 2012 2012 2012 2012 2012 2012 2012 2012 2012 ...
 ##  $ Latitude           : num  41.8 41.9 42 41.8 41.8 ...
 ##  $ Longitude          : num  -87.6 -87.7 -87.8 -87.7 -87.6 ...
+##  - attr(*, "comment")= chr "entity_df"
 ## NULL
 ```
 
 ```r
 if (glb_separate_predict_dataset) {
-    predict_df <- myimport_data(
+    predct_df <- myimport_data(
         url="<prdct_url>", 
+        comment="predct_df",
         print_diagn=TRUE)
 } else {
-    predict_df <- entity_df[sample(1:nrow(entity_df), nrow(entity_df) / 1000),]
-    myprint_df(predict_df)
-    str(predict_df)
+    predct_df <- entity_df[sample(1:nrow(entity_df), nrow(entity_df) / 1000),]
+    comment(predct_df) <- "predct_df"
+    myprint_df(predct_df)
+    str(predct_df)
 }         
 ```
 
@@ -183,6 +187,7 @@ if (glb_separate_predict_dataset) {
 ##  $ Year               : int  2008 2006 2003 2001 2012 2011 2003 2012 2007 2006 ...
 ##  $ Latitude           : num  41.9 41.9 41.9 41.9 41.9 ...
 ##  $ Longitude          : num  -87.7 -87.7 -87.6 -87.7 -87.6 ...
+##  - attr(*, "comment")= chr "predct_df"
 ```
 
 ```r
@@ -220,8 +225,26 @@ print(script_df)
 
 # Create new features that help diagnostics
 #   Convert factors to dummy variables
-#   Build splines   require(splines); bsBasis <- bs(training$age, df=3)
-#entity_df$LocationDescription_fctr <- as.factor(entity_df$LocationDescription)
+#   Potential Enhancements:
+#       One code chunk to cycle thru entity_df & predct_df ?
+#           Use with / within ?
+#           for (df in c(entity_df, predct_df)) cycles thru column names
+#           for (df in list(entity_df, predct_df)) does not change the actual dataframes
+#
+#       Build splines   require(splines); bsBasis <- bs(training$age, df=3)
+
+entity_df <- mutate(entity_df, 
+    LocationDescription_fctr=as.factor(LocationDescription),
+    Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
+    Month=months(Date.my),
+    Weekday=weekdays(Date.my)
+                    )
+predct_df <- mutate(predct_df, 
+    LocationDescription_fctr=as.factor(LocationDescription),
+    Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
+    Month=months(Date.my),
+    Weekday=weekdays(Date.my)
+                    )
 
 print(summary(entity_df))
 ```
@@ -250,11 +273,27 @@ print(summary(entity_df))
 ##  Mean   :2006   Mean   :41.84   Mean   :-87.68  
 ##  3rd Qu.:2009   3rd Qu.:41.92   3rd Qu.:-87.64  
 ##  Max.   :2012   Max.   :42.02   Max.   :-87.52  
-##                 NA's   :2276    NA's   :2276
+##                 NA's   :2276    NA's   :2276    
+##                    LocationDescription_fctr    Date.my          
+##  STREET                        :156564      Min.   :2001-01-01  
+##  PARKING LOT/GARAGE(NON.RESID.): 14852      1st Qu.:2003-07-10  
+##  OTHER                         :  4573      Median :2006-05-21  
+##  ALLEY                         :  2308      Mean   :2006-08-23  
+##  GAS STATION                   :  2111      3rd Qu.:2009-10-24  
+##  DRIVEWAY - RESIDENTIAL        :  1675      Max.   :2012-12-31  
+##  (Other)                       :  9558                          
+##     Month             Weekday         
+##  Length:191641      Length:191641     
+##  Class :character   Class :character  
+##  Mode  :character   Mode  :character  
+##                                       
+##                                       
+##                                       
+## 
 ```
 
 ```r
-print(summary(predict_df))
+print(summary(predct_df))
 ```
 
 ```
@@ -281,14 +320,30 @@ print(summary(predict_df))
 ##  Mean   :2006   Mean   :41.84   Mean   :-87.68  
 ##  3rd Qu.:2008   3rd Qu.:41.92   3rd Qu.:-87.64  
 ##  Max.   :2012   Max.   :42.01   Max.   :-87.55  
-##                 NA's   :4       NA's   :4
+##                 NA's   :4       NA's   :4       
+##                    LocationDescription_fctr    Date.my          
+##  STREET                        :148         Min.   :2001-01-30  
+##  PARKING LOT/GARAGE(NON.RESID.): 14         1st Qu.:2002-12-31  
+##  OTHER                         :  6         Median :2005-09-22  
+##  VEHICLE NON-COMMERCIAL        :  5         Mean   :2006-03-10  
+##  ALLEY                         :  3         3rd Qu.:2009-01-01  
+##  RESIDENCE                     :  3         Max.   :2012-12-27  
+##  (Other)                       : 12                             
+##     Month             Weekday         
+##  Length:191         Length:191        
+##  Class :character   Class :character  
+##  Mode  :character   Mode  :character  
+##                                       
+##                                       
+##                                       
+## 
 ```
 
 ```r
 #pairs(subset(entity_df, select=-c(col_symbol)))
 
-#   Histogram of predictor in entity_df & predict_df
-# Check for predict_df & entity_df features range mismatches
+#   Histogram of predictor in entity_df & predct_df
+# Check for predct_df & entity_df features range mismatches
 
 # Other diagnostics:
 print(table(entity_df$LocationDescription))
@@ -452,6 +507,76 @@ print(table(entity_df$LocationDescription))
 ##                                              23 
 ##                                       WAREHOUSE 
 ##                                              17
+```
+
+```r
+print(table(entity_df$Month))
+```
+
+```
+## 
+##     April    August  December  February   January      July      June 
+##     15280     16572     16426     13511     16047     16801     16002 
+##     March       May  November   October September 
+##     15758     16035     16063     17086     16060
+```
+
+```r
+print(which.min(table(entity_df$Month)))
+```
+
+```
+## February 
+##        4
+```
+
+```r
+print(table(entity_df$Weekday))
+```
+
+```
+## 
+##    Friday    Monday  Saturday    Sunday  Thursday   Tuesday Wednesday 
+##     29284     27397     27118     26316     27319     26791     27416
+```
+
+```r
+print(which.max(table(entity_df$Weekday)))
+```
+
+```
+## Friday 
+##      1
+```
+
+```r
+print(table(entity_df$Month, entity_df$Arrest))
+```
+
+```
+##            
+##             FALSE  TRUE
+##   April     14028  1252
+##   August    15243  1329
+##   December  15029  1397
+##   February  12273  1238
+##   January   14612  1435
+##   July      15477  1324
+##   June      14772  1230
+##   March     14460  1298
+##   May       14848  1187
+##   November  14807  1256
+##   October   15744  1342
+##   September 14812  1248
+```
+
+```r
+print(which.max(table(entity_df$Month, entity_df$Arrest)[, 2]))
+```
+
+```
+## January 
+##       5
 ```
 
 ```r

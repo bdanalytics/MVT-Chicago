@@ -51,7 +51,7 @@ source("~/Dropbox/datascience/R/mydsutils.R")
 source("~/Dropbox/datascience/R/myplot.R")
 source("~/Dropbox/datascience/R/mypetrinet.R")
 # Gather all package requirements here
-#suppressPackageStartupMessages(require())
+suppressPackageStartupMessages(require(plyr))
 
 #require(sos); findFn("pinv", maxPages=2, sortby="MaxScore")
 
@@ -65,17 +65,20 @@ print(script_df)
 ## Step ``r script_df[nrow(script_df), "chunk_step_major"]``: import data
 ```{r import_data, cache=TRUE}
 entity_df <- myimport_data(
-    url="https://courses.edx.org/c4x/MITx/15.071x_2/asset/mvtWeek1.csv", 
+    url="https://courses.edx.org/c4x/MITx/15.071x_2/asset/mvtWeek1.csv",
+    comment="entity_df",
     print_diagn=TRUE)
 
 if (glb_separate_predict_dataset) {
-    predict_df <- myimport_data(
+    predct_df <- myimport_data(
         url="<prdct_url>", 
+        comment="predct_df",
         print_diagn=TRUE)
 } else {
-    predict_df <- entity_df[sample(1:nrow(entity_df), nrow(entity_df) / 1000),]
-    myprint_df(predict_df)
-    str(predict_df)
+    predct_df <- entity_df[sample(1:nrow(entity_df), nrow(entity_df) / 1000),]
+    comment(predct_df) <- "predct_df"
+    myprint_df(predct_df)
+    str(predct_df)
 }         
 
 script_df <- rbind(script_df, 
@@ -105,19 +108,43 @@ print(script_df)
 
 # Create new features that help diagnostics
 #   Convert factors to dummy variables
-#   Build splines   require(splines); bsBasis <- bs(training$age, df=3)
-#entity_df$LocationDescription_fctr <- as.factor(entity_df$LocationDescription)
+#   Potential Enhancements:
+#       One code chunk to cycle thru entity_df & predct_df ?
+#           Use with / within ?
+#           for (df in c(entity_df, predct_df)) cycles thru column names
+#           for (df in list(entity_df, predct_df)) does not change the actual dataframes
+#
+#       Build splines   require(splines); bsBasis <- bs(training$age, df=3)
+
+entity_df <- mutate(entity_df, 
+    LocationDescription_fctr=as.factor(LocationDescription),
+    Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
+    Month=months(Date.my),
+    Weekday=weekdays(Date.my)
+                    )
+predct_df <- mutate(predct_df, 
+    LocationDescription_fctr=as.factor(LocationDescription),
+    Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
+    Month=months(Date.my),
+    Weekday=weekdays(Date.my)
+                    )
 
 print(summary(entity_df))
-print(summary(predict_df))
+print(summary(predct_df))
 
 #pairs(subset(entity_df, select=-c(col_symbol)))
 
-#   Histogram of predictor in entity_df & predict_df
-# Check for predict_df & entity_df features range mismatches
+#   Histogram of predictor in entity_df & predct_df
+# Check for predct_df & entity_df features range mismatches
 
 # Other diagnostics:
 print(table(entity_df$LocationDescription))
+print(table(entity_df$Month))
+print(which.min(table(entity_df$Month)))
+print(table(entity_df$Weekday))
+print(which.max(table(entity_df$Weekday)))
+print(table(entity_df$Month, entity_df$Arrest))
+print(which.max(table(entity_df$Month, entity_df$Arrest)[, 2]))
 
 script_df <- rbind(script_df, 
                    data.frame(chunk_label="extract_features", 
