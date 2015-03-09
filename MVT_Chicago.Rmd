@@ -67,6 +67,7 @@ print(script_df)
 entity_df <- myimport_data(
     url="https://courses.edx.org/c4x/MITx/15.071x_2/asset/mvtWeek1.csv", 
     print_diagn=TRUE)
+
 if (glb_separate_predict_dataset) {
     predict_df <- myimport_data(
         url="<prdct_url>", 
@@ -90,9 +91,22 @@ print(script_df)
 #View(entity_df)
 
 # List info gathered for various columns
-# steps:
-# date:
-# interval:
+#   ID: a unique identifier for each observation
+#   Date: the date the crime occurred
+#   LocationDescription: the location where the crime occurred
+#   Arrest: whether or not an arrest was made for the crime (TRUE if an arrest was made, and FALSE if an arrest was not made)
+#   Domestic: whether or not the crime was a domestic crime, meaning that it was committed against a family member (TRUE if it was domestic, and FALSE if it was not domestic)
+#   Beat: the area, or "beat" in which the crime occurred. This is the smallest regional division defined by the Chicago police department.
+#   District: the police district in which the crime occured. Each district is composed of many beats, and are defined by the Chicago Police Department.
+#   CommunityArea: the community area in which the crime occurred. Since the 1920s, Chicago has been divided into what are called "community areas", of which there are now 77. The community areas were devised in an attempt to create socially homogeneous regions.
+#   Year: the year in which the crime occurred.
+#   Latitude: the latitude of the location at which the crime occurred.
+#   Longitude: the longitude of the location at which the crime occurred.
+
+# Create new features that help diagnostics
+#   Convert factors to dummy variables
+#   Build splines   require(splines); bsBasis <- bs(training$age, df=3)
+#entity_df$LocationDescription_fctr <- as.factor(entity_df$LocationDescription)
 
 print(summary(entity_df))
 print(summary(predict_df))
@@ -102,9 +116,8 @@ print(summary(predict_df))
 #   Histogram of predictor in entity_df & predict_df
 # Check for predict_df & entity_df features range mismatches
 
-# Create new features that help diagnostics
-#   Convert factors to dummy variables
-#   Build splines   require(splines); bsBasis <- bs(training$age, df=3)
+# Other diagnostics:
+print(table(entity_df$LocationDescription))
 
 script_df <- rbind(script_df, 
                    data.frame(chunk_label="extract_features", 

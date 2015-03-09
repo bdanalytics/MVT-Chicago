@@ -2,14 +2,14 @@
 bdanalytics  
 
 **  **    
-**Date: (Sun) Mar 08, 2015**    
+**Date: (Mon) Mar 09, 2015**    
 
 # Introduction:  
 
 Data: 
 Source: 
-    Training:   https://courses.edx.org/c4x/MITx/15.071x_2/asset/mvtWeek1.csv
-    New:        <prdct_url>
+    Training:   https://courses.edx.org/c4x/MITx/15.071x_2/asset/mvtWeek1.csv  
+    New:        <prdct_url>  
 Time period: 
 
 
@@ -206,9 +206,22 @@ print(script_df)
 #View(entity_df)
 
 # List info gathered for various columns
-# steps:
-# date:
-# interval:
+#   ID: a unique identifier for each observation
+#   Date: the date the crime occurred
+#   LocationDescription: the location where the crime occurred
+#   Arrest: whether or not an arrest was made for the crime (TRUE if an arrest was made, and FALSE if an arrest was not made)
+#   Domestic: whether or not the crime was a domestic crime, meaning that it was committed against a family member (TRUE if it was domestic, and FALSE if it was not domestic)
+#   Beat: the area, or "beat" in which the crime occurred. This is the smallest regional division defined by the Chicago police department.
+#   District: the police district in which the crime occured. Each district is composed of many beats, and are defined by the Chicago Police Department.
+#   CommunityArea: the community area in which the crime occurred. Since the 1920s, Chicago has been divided into what are called "community areas", of which there are now 77. The community areas were devised in an attempt to create socially homogeneous regions.
+#   Year: the year in which the crime occurred.
+#   Latitude: the latitude of the location at which the crime occurred.
+#   Longitude: the longitude of the location at which the crime occurred.
+
+# Create new features that help diagnostics
+#   Convert factors to dummy variables
+#   Build splines   require(splines); bsBasis <- bs(training$age, df=3)
+#entity_df$LocationDescription_fctr <- as.factor(entity_df$LocationDescription)
 
 print(summary(entity_df))
 ```
@@ -277,10 +290,171 @@ print(summary(predict_df))
 #   Histogram of predictor in entity_df & predict_df
 # Check for predict_df & entity_df features range mismatches
 
-# Create new features that help diagnostics
-#   Convert factors to dummy variables
-#   Build splines   require(splines); bsBasis <- bs(training$age, df=3)
+# Other diagnostics:
+print(table(entity_df$LocationDescription))
+```
 
+```
+## 
+##                              ABANDONED BUILDING 
+##                                               4 
+## AIRPORT BUILDING NON-TERMINAL - NON-SECURE AREA 
+##                                               4 
+##     AIRPORT BUILDING NON-TERMINAL - SECURE AREA 
+##                                               1 
+##              AIRPORT EXTERIOR - NON-SECURE AREA 
+##                                              24 
+##                  AIRPORT EXTERIOR - SECURE AREA 
+##                                               1 
+##                             AIRPORT PARKING LOT 
+##                                              11 
+##  AIRPORT TERMINAL UPPER LEVEL - NON-SECURE AREA 
+##                                               5 
+##                   AIRPORT VENDING ESTABLISHMENT 
+##                                              10 
+##                                AIRPORT/AIRCRAFT 
+##                                             363 
+##                                           ALLEY 
+##                                            2308 
+##                                 ANIMAL HOSPITAL 
+##                                               1 
+##                                       APARTMENT 
+##                                             184 
+##                                 APPLIANCE STORE 
+##                                               1 
+##                                   ATHLETIC CLUB 
+##                                               9 
+##                                            BANK 
+##                                               7 
+##                                   BAR OR TAVERN 
+##                                              17 
+##                                      BARBERSHOP 
+##                                               4 
+##                                   BOWLING ALLEY 
+##                                               3 
+##                                          BRIDGE 
+##                                               2 
+##                                        CAR WASH 
+##                                              44 
+##                                   CHA APARTMENT 
+##                                               5 
+##                         CHA PARKING LOT/GROUNDS 
+##                                             405 
+##               CHURCH/SYNAGOGUE/PLACE OF WORSHIP 
+##                                              56 
+##                                  CLEANING STORE 
+##                                               3 
+##                      COLLEGE/UNIVERSITY GROUNDS 
+##                                              47 
+##               COLLEGE/UNIVERSITY RESIDENCE HALL 
+##                                               2 
+##                    COMMERCIAL / BUSINESS OFFICE 
+##                                             126 
+##                               CONSTRUCTION SITE 
+##                                              35 
+##                               CONVENIENCE STORE 
+##                                               7 
+##                     CTA GARAGE / OTHER PROPERTY 
+##                                             148 
+##                                       CTA TRAIN 
+##                                               1 
+##                               CURRENCY EXCHANGE 
+##                                               2 
+##                                 DAY CARE CENTER 
+##                                               5 
+##                                DEPARTMENT STORE 
+##                                              22 
+##                          DRIVEWAY - RESIDENTIAL 
+##                                            1675 
+##                                      DRUG STORE 
+##                                               8 
+##                  FACTORY/MANUFACTURING BUILDING 
+##                                              16 
+##                                    FIRE STATION 
+##                                               5 
+##                                 FOREST PRESERVE 
+##                                               6 
+##                                     GAS STATION 
+##                                            2111 
+##                    GOVERNMENT BUILDING/PROPERTY 
+##                                              48 
+##                              GROCERY FOOD STORE 
+##                                              80 
+##                              HIGHWAY/EXPRESSWAY 
+##                                              22 
+##                       HOSPITAL BUILDING/GROUNDS 
+##                                             101 
+##                                     HOTEL/MOTEL 
+##                                             124 
+##                         JAIL / LOCK-UP FACILITY 
+##                                               1 
+##                  LAKEFRONT/WATERFRONT/RIVERBANK 
+##                                               4 
+##                                         LIBRARY 
+##                                               4 
+##                           MEDICAL/DENTAL OFFICE 
+##                                               3 
+##                             MOVIE HOUSE/THEATER 
+##                                              18 
+##                                       NEWSSTAND 
+##                                               1 
+##                    NURSING HOME/RETIREMENT HOME 
+##                                              21 
+##                                           OTHER 
+##                                            4573 
+##                 OTHER COMMERCIAL TRANSPORTATION 
+##                                               8 
+##               OTHER RAILROAD PROP / TRAIN DEPOT 
+##                                              28 
+##                                   PARK PROPERTY 
+##                                             255 
+##                  PARKING LOT/GARAGE(NON.RESID.) 
+##                                           14852 
+##                 POLICE FACILITY/VEH PARKING LOT 
+##                                             266 
+##                                       RESIDENCE 
+##                                            1302 
+##                         RESIDENCE PORCH/HALLWAY 
+##                                              18 
+##                                RESIDENCE-GARAGE 
+##                                            1176 
+##                   RESIDENTIAL YARD (FRONT/BACK) 
+##                                            1536 
+##                                      RESTAURANT 
+##                                              49 
+##                                SAVINGS AND LOAN 
+##                                               4 
+##                       SCHOOL, PRIVATE, BUILDING 
+##                                              14 
+##                        SCHOOL, PRIVATE, GROUNDS 
+##                                              23 
+##                        SCHOOL, PUBLIC, BUILDING 
+##                                             114 
+##                         SCHOOL, PUBLIC, GROUNDS 
+##                                             206 
+##                                        SIDEWALK 
+##                                             462 
+##                              SMALL RETAIL STORE 
+##                                              33 
+##                            SPORTS ARENA/STADIUM 
+##                                             166 
+##                                          STREET 
+##                                          156564 
+##                             TAVERN/LIQUOR STORE 
+##                                              14 
+##                                         TAXICAB 
+##                                              21 
+##                                 VACANT LOT/LAND 
+##                                             985 
+##                          VEHICLE NON-COMMERCIAL 
+##                                             817 
+##                              VEHICLE-COMMERCIAL 
+##                                              23 
+##                                       WAREHOUSE 
+##                                              17
+```
+
+```r
 script_df <- rbind(script_df, 
                    data.frame(chunk_label="extract_features", 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
