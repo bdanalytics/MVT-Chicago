@@ -2,7 +2,7 @@
 bdanalytics  
 
 **  **    
-**Date: (Mon) Mar 09, 2015**    
+**Date: (Tue) Mar 10, 2015**    
 
 # Introduction:  
 
@@ -33,10 +33,11 @@ source("~/Dropbox/datascience/R/myplot.R")
 source("~/Dropbox/datascience/R/mypetrinet.R")
 # Gather all package requirements here
 suppressPackageStartupMessages(require(plyr))
+suppressPackageStartupMessages(require(lubridate))
 
 #require(sos); findFn("pinv", maxPages=2, sortby="MaxScore")
 
-# Analysis sepcific global variables
+# Analysis specific global variables
 glb_separate_predict_dataset <- FALSE
 
 script_df <- data.frame(chunk_label="import_data", chunk_step_major=1, chunk_step_minor=0)
@@ -53,8 +54,7 @@ print(script_df)
 ```r
 entity_df <- myimport_data(
     url="https://courses.edx.org/c4x/MITx/15.071x_2/asset/mvtWeek1.csv",
-    comment="entity_df",
-    print_diagn=TRUE)
+    comment="entity_df", print_diagn=TRUE)
 ```
 
 ```
@@ -122,8 +122,7 @@ entity_df <- myimport_data(
 if (glb_separate_predict_dataset) {
     predct_df <- myimport_data(
         url="<prdct_url>", 
-        comment="predct_df",
-        print_diagn=TRUE)
+        comment="predct_df", print_diagn=TRUE)
 } else {
     predct_df <- entity_df[sample(1:nrow(entity_df), nrow(entity_df) / 1000),]
     comment(predct_df) <- "predct_df"
@@ -235,15 +234,22 @@ print(script_df)
 
 entity_df <- mutate(entity_df, 
     LocationDescription_fctr=as.factor(LocationDescription),
+    
     Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
+    Year=year(Date.my),
     Month=months(Date.my),
     Weekday=weekdays(Date.my)
+    
                     )
+
 predct_df <- mutate(predct_df, 
     LocationDescription_fctr=as.factor(LocationDescription),
+    
     Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
+    Year=year(Date.my),    
     Month=months(Date.my),
     Weekday=weekdays(Date.my)
+    
                     )
 
 print(summary(entity_df))
@@ -342,7 +348,7 @@ print(summary(predct_df))
 ```r
 #pairs(subset(entity_df, select=-c(col_symbol)))
 
-#   Histogram of predictor in entity_df & predct_df
+# Histogram of predictor in entity_df & predct_df
 # Check for predct_df & entity_df features range mismatches
 
 # Other diagnostics:
@@ -580,6 +586,128 @@ print(which.max(table(entity_df$Month, entity_df$Arrest)[, 2]))
 ```
 
 ```r
+print(table(entity_df$Month, entity_df$Arrest))
+```
+
+```
+##            
+##             FALSE  TRUE
+##   April     14028  1252
+##   August    15243  1329
+##   December  15029  1397
+##   February  12273  1238
+##   January   14612  1435
+##   July      15477  1324
+##   June      14772  1230
+##   March     14460  1298
+##   May       14848  1187
+##   November  14807  1256
+##   October   15744  1342
+##   September 14812  1248
+```
+
+```r
+print(prblm_3_3_tbl <- table(entity_df$Year, entity_df$Arrest))
+```
+
+```
+##       
+##        FALSE  TRUE
+##   2001 18517  2152
+##   2002 16638  2115
+##   2003 14859  1798
+##   2004 15169  1693
+##   2005 14956  1528
+##   2006 14796  1302
+##   2007 13068  1212
+##   2008 13425  1020
+##   2009 11327   840
+##   2010 14796   701
+##   2011 15012   625
+##   2012 13542   550
+```
+
+```r
+print(prblm_3_3_df <- data.frame(Year=dimnames(prblm_3_3_tbl)[[1]],
+                                 Arrest_FALSE=prblm_3_3_tbl[, 1],
+                                 Arrest_TRUE =prblm_3_3_tbl[, 2]))
+```
+
+```
+##      Year Arrest_FALSE Arrest_TRUE
+## 2001 2001        18517        2152
+## 2002 2002        16638        2115
+## 2003 2003        14859        1798
+## 2004 2004        15169        1693
+## 2005 2005        14956        1528
+## 2006 2006        14796        1302
+## 2007 2007        13068        1212
+## 2008 2008        13425        1020
+## 2009 2009        11327         840
+## 2010 2010        14796         701
+## 2011 2011        15012         625
+## 2012 2012        13542         550
+```
+
+```r
+print(prblm_3_3_df <- mutate(prblm_3_3_df, 
+            Arrest_ratio=(Arrest_TRUE * 1.0) / (Arrest_TRUE + Arrest_FALSE))) 
+```
+
+```
+##      Year Arrest_FALSE Arrest_TRUE Arrest_ratio
+## 2001 2001        18517        2152   0.10411728
+## 2002 2002        16638        2115   0.11278195
+## 2003 2003        14859        1798   0.10794261
+## 2004 2004        15169        1693   0.10040327
+## 2005 2005        14956        1528   0.09269595
+## 2006 2006        14796        1302   0.08087961
+## 2007 2007        13068        1212   0.08487395
+## 2008 2008        13425        1020   0.07061267
+## 2009 2009        11327         840   0.06903920
+## 2010 2010        14796         701   0.04523456
+## 2011 2011        15012         625   0.03996930
+## 2012 2012        13542         550   0.03902924
+```
+
+```r
+print(prblm_3_3_df[prblm_3_3_df$Year == 2001, ])
+```
+
+```
+##      Year Arrest_FALSE Arrest_TRUE Arrest_ratio
+## 2001 2001        18517        2152    0.1041173
+```
+
+```r
+# Other plots:
+print(myplot_histogram(entity_df, "Date.my"))
+```
+
+```
+## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
+```
+
+![](MVT_Chicago_files/figure-html/inspect_data_1-1.png) 
+
+```r
+print(myplot_box(df=entity_df, ycol_names="Date.my"))
+```
+
+![](MVT_Chicago_files/figure-html/inspect_data_1-2.png) 
+
+```r
+print(myplot_box(df=entity_df, ycol_names="Date.my", xcol_name="Arrest"))
+```
+
+```
+## Warning in myplot_box(df = entity_df, ycol_names = "Date.my", xcol_name =
+## "Arrest"): xcol_name:Arrest is not a factor; creating Arrest_fctr
+```
+
+![](MVT_Chicago_files/figure-html/inspect_data_1-3.png) 
+
+```r
 script_df <- rbind(script_df, 
                    data.frame(chunk_label="extract_features", 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
@@ -662,13 +790,15 @@ We reject the null hypothesis i.e. we have evidence to conclude that am_fctr imp
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] doBy_4.5-13     survival_2.38-1 ggplot2_1.0.0  
+## [1] lubridate_1.3.3 plyr_1.8.1      doBy_4.5-13     survival_2.38-1
+## [5] ggplot2_1.0.0  
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] codetools_0.2-10 colorspace_1.2-5 digest_0.6.8     evaluate_0.5.5  
 ##  [5] formatR_1.0      grid_3.1.2       gtable_0.1.2     htmltools_0.2.6 
-##  [9] knitr_1.9        lattice_0.20-30  MASS_7.3-39      Matrix_1.1-5    
-## [13] munsell_0.4.2    plyr_1.8.1       proto_0.3-10     Rcpp_0.11.4     
-## [17] reshape2_1.4.1   rmarkdown_0.5.1  scales_0.2.4     splines_3.1.2   
-## [21] stringr_0.6.2    tcltk_3.1.2      tools_3.1.2      yaml_2.1.13
+##  [9] knitr_1.9        labeling_0.3     lattice_0.20-30  MASS_7.3-39     
+## [13] Matrix_1.1-5     memoise_0.2.1    munsell_0.4.2    proto_0.3-10    
+## [17] Rcpp_0.11.4      reshape2_1.4.1   rmarkdown_0.5.1  scales_0.2.4    
+## [21] splines_3.1.2    stringr_0.6.2    tcltk_3.1.2      tools_3.1.2     
+## [25] yaml_2.1.13
 ```

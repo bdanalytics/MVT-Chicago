@@ -52,10 +52,11 @@ source("~/Dropbox/datascience/R/myplot.R")
 source("~/Dropbox/datascience/R/mypetrinet.R")
 # Gather all package requirements here
 suppressPackageStartupMessages(require(plyr))
+suppressPackageStartupMessages(require(lubridate))
 
 #require(sos); findFn("pinv", maxPages=2, sortby="MaxScore")
 
-# Analysis sepcific global variables
+# Analysis specific global variables
 glb_separate_predict_dataset <- FALSE
 
 script_df <- data.frame(chunk_label="import_data", chunk_step_major=1, chunk_step_minor=0)
@@ -66,14 +67,12 @@ print(script_df)
 ```{r import_data, cache=TRUE}
 entity_df <- myimport_data(
     url="https://courses.edx.org/c4x/MITx/15.071x_2/asset/mvtWeek1.csv",
-    comment="entity_df",
-    print_diagn=TRUE)
+    comment="entity_df", print_diagn=TRUE)
 
 if (glb_separate_predict_dataset) {
     predct_df <- myimport_data(
         url="<prdct_url>", 
-        comment="predct_df",
-        print_diagn=TRUE)
+        comment="predct_df", print_diagn=TRUE)
 } else {
     predct_df <- entity_df[sample(1:nrow(entity_df), nrow(entity_df) / 1000),]
     comment(predct_df) <- "predct_df"
@@ -118,15 +117,22 @@ print(script_df)
 
 entity_df <- mutate(entity_df, 
     LocationDescription_fctr=as.factor(LocationDescription),
+    
     Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
+    Year=year(Date.my),
     Month=months(Date.my),
     Weekday=weekdays(Date.my)
+    
                     )
+
 predct_df <- mutate(predct_df, 
     LocationDescription_fctr=as.factor(LocationDescription),
+    
     Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
+    Year=year(Date.my),    
     Month=months(Date.my),
     Weekday=weekdays(Date.my)
+    
                     )
 
 print(summary(entity_df))
@@ -134,7 +140,7 @@ print(summary(predct_df))
 
 #pairs(subset(entity_df, select=-c(col_symbol)))
 
-#   Histogram of predictor in entity_df & predct_df
+# Histogram of predictor in entity_df & predct_df
 # Check for predct_df & entity_df features range mismatches
 
 # Other diagnostics:
@@ -145,6 +151,19 @@ print(table(entity_df$Weekday))
 print(which.max(table(entity_df$Weekday)))
 print(table(entity_df$Month, entity_df$Arrest))
 print(which.max(table(entity_df$Month, entity_df$Arrest)[, 2]))
+print(table(entity_df$Month, entity_df$Arrest))
+print(prblm_3_3_tbl <- table(entity_df$Year, entity_df$Arrest))
+print(prblm_3_3_df <- data.frame(Year=dimnames(prblm_3_3_tbl)[[1]],
+                                 Arrest_FALSE=prblm_3_3_tbl[, 1],
+                                 Arrest_TRUE =prblm_3_3_tbl[, 2]))
+print(prblm_3_3_df <- mutate(prblm_3_3_df, 
+            Arrest_ratio=(Arrest_TRUE * 1.0) / (Arrest_TRUE + Arrest_FALSE))) 
+print(prblm_3_3_df[prblm_3_3_df$Year == 2001, ])
+
+# Other plots:
+print(myplot_histogram(entity_df, "Date.my"))
+print(myplot_box(df=entity_df, ycol_names="Date.my"))
+print(myplot_box(df=entity_df, ycol_names="Date.my", xcol_name="Arrest"))
 
 script_df <- rbind(script_df, 
                    data.frame(chunk_label="extract_features", 
