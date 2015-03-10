@@ -238,19 +238,13 @@ entity_df <- mutate(entity_df,
     Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
     Year=year(Date.my),
     Month=months(Date.my),
+    Month_fctr=as.factor(Month),
     Weekday=weekdays(Date.my)
     
                     )
 
-predct_df <- mutate(predct_df, 
-    LocationDescription_fctr=as.factor(LocationDescription),
-    
-    Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
-    Year=year(Date.my),    
-    Month=months(Date.my),
-    Weekday=weekdays(Date.my)
-    
-                    )
+# predct_df <- mutate(predct_df, 
+#                     )
 
 print(summary(entity_df))
 ```
@@ -288,14 +282,14 @@ print(summary(entity_df))
 ##  GAS STATION                   :  2111      3rd Qu.:2009-10-24  
 ##  DRIVEWAY - RESIDENTIAL        :  1675      Max.   :2012-12-31  
 ##  (Other)                       :  9558                          
-##     Month             Weekday         
-##  Length:191641      Length:191641     
-##  Class :character   Class :character  
-##  Mode  :character   Mode  :character  
-##                                       
-##                                       
-##                                       
-## 
+##     Month               Month_fctr      Weekday         
+##  Length:191641      October  :17086   Length:191641     
+##  Class :character   July     :16801   Class :character  
+##  Mode  :character   August   :16572   Mode  :character  
+##                     December :16426                     
+##                     November :16063                     
+##                     September:16060                     
+##                     (Other)  :92633
 ```
 
 ```r
@@ -326,23 +320,7 @@ print(summary(predct_df))
 ##  Mean   :2006   Mean   :41.84   Mean   :-87.68  
 ##  3rd Qu.:2008   3rd Qu.:41.92   3rd Qu.:-87.64  
 ##  Max.   :2012   Max.   :42.01   Max.   :-87.55  
-##                 NA's   :4       NA's   :4       
-##                    LocationDescription_fctr    Date.my          
-##  STREET                        :148         Min.   :2001-01-30  
-##  PARKING LOT/GARAGE(NON.RESID.): 14         1st Qu.:2002-12-31  
-##  OTHER                         :  6         Median :2005-09-22  
-##  VEHICLE NON-COMMERCIAL        :  5         Mean   :2006-03-10  
-##  ALLEY                         :  3         3rd Qu.:2009-01-01  
-##  RESIDENCE                     :  3         Max.   :2012-12-27  
-##  (Other)                       : 12                             
-##     Month             Weekday         
-##  Length:191         Length:191        
-##  Class :character   Class :character  
-##  Mode  :character   Mode  :character  
-##                                       
-##                                       
-##                                       
-## 
+##                 NA's   :4       NA's   :4
 ```
 
 ```r
@@ -607,67 +585,101 @@ print(table(entity_df$Month, entity_df$Arrest))
 ```
 
 ```r
-print(prblm_3_3_tbl <- table(entity_df$Year, entity_df$Arrest))
+print(xtabs(~ Month_fctr, entity_df))
 ```
 
 ```
-##       
-##        FALSE  TRUE
-##   2001 18517  2152
-##   2002 16638  2115
-##   2003 14859  1798
-##   2004 15169  1693
-##   2005 14956  1528
-##   2006 14796  1302
-##   2007 13068  1212
-##   2008 13425  1020
-##   2009 11327   840
-##   2010 14796   701
-##   2011 15012   625
-##   2012 13542   550
+## Month_fctr
+##     April    August  December  February   January      July      June 
+##     15280     16572     16426     13511     16047     16801     16002 
+##     March       May  November   October September 
+##     15758     16035     16063     17086     16060
 ```
 
 ```r
-print(prblm_3_3_df <- data.frame(Year=dimnames(prblm_3_3_tbl)[[1]],
-                                 Arrest_FALSE=prblm_3_3_tbl[, 1],
-                                 Arrest_TRUE =prblm_3_3_tbl[, 2]))
+print(xtabs(~ Month_fctr + Arrest, entity_df))
 ```
 
 ```
-##      Year Arrest_FALSE Arrest_TRUE
-## 2001 2001        18517        2152
-## 2002 2002        16638        2115
-## 2003 2003        14859        1798
-## 2004 2004        15169        1693
-## 2005 2005        14956        1528
-## 2006 2006        14796        1302
-## 2007 2007        13068        1212
-## 2008 2008        13425        1020
-## 2009 2009        11327         840
-## 2010 2010        14796         701
-## 2011 2011        15012         625
-## 2012 2012        13542         550
+##            Arrest
+## Month_fctr  FALSE  TRUE
+##   April     14028  1252
+##   August    15243  1329
+##   December  15029  1397
+##   February  12273  1238
+##   January   14612  1435
+##   July      15477  1324
+##   June      14772  1230
+##   March     14460  1298
+##   May       14848  1187
+##   November  14807  1256
+##   October   15744  1342
+##   September 14812  1248
+```
+
+```r
+print(prblm_3_2_df <- mycreate_xtab(df=entity_df, xtab_col_names=c("Month", "Arrest")))
+```
+
+```
+## Loading required package: reshape2
+```
+
+```
+##        Month Arrest.FALSE Arrest.TRUE
+## 1      April        14028        1252
+## 2     August        15243        1329
+## 3   December        15029        1397
+## 4   February        12273        1238
+## 5    January        14612        1435
+## 6       July        15477        1324
+## 7       June        14772        1230
+## 8      March        14460        1298
+## 9        May        14848        1187
+## 10  November        14807        1256
+## 11   October        15744        1342
+## 12 September        14812        1248
+```
+
+```r
+print(prblm_3_3_df <- mycreate_xtab(df=entity_df, xtab_col_names=c("Year", "Arrest")))
+```
+
+```
+##    Year Arrest.FALSE Arrest.TRUE
+## 1  2001        18517        2152
+## 2  2002        16638        2115
+## 3  2003        14859        1798
+## 4  2004        15169        1693
+## 5  2005        14956        1528
+## 6  2006        14796        1302
+## 7  2007        13068        1212
+## 8  2008        13425        1020
+## 9  2009        11327         840
+## 10 2010        14796         701
+## 11 2011        15012         625
+## 12 2012        13542         550
 ```
 
 ```r
 print(prblm_3_3_df <- mutate(prblm_3_3_df, 
-            Arrest_ratio=(Arrest_TRUE * 1.0) / (Arrest_TRUE + Arrest_FALSE))) 
+            Arrest.ratio=(Arrest.TRUE * 1.0) / (Arrest.TRUE + Arrest.FALSE))) 
 ```
 
 ```
-##      Year Arrest_FALSE Arrest_TRUE Arrest_ratio
-## 2001 2001        18517        2152   0.10411728
-## 2002 2002        16638        2115   0.11278195
-## 2003 2003        14859        1798   0.10794261
-## 2004 2004        15169        1693   0.10040327
-## 2005 2005        14956        1528   0.09269595
-## 2006 2006        14796        1302   0.08087961
-## 2007 2007        13068        1212   0.08487395
-## 2008 2008        13425        1020   0.07061267
-## 2009 2009        11327         840   0.06903920
-## 2010 2010        14796         701   0.04523456
-## 2011 2011        15012         625   0.03996930
-## 2012 2012        13542         550   0.03902924
+##    Year Arrest.FALSE Arrest.TRUE Arrest.ratio
+## 1  2001        18517        2152   0.10411728
+## 2  2002        16638        2115   0.11278195
+## 3  2003        14859        1798   0.10794261
+## 4  2004        15169        1693   0.10040327
+## 5  2005        14956        1528   0.09269595
+## 6  2006        14796        1302   0.08087961
+## 7  2007        13068        1212   0.08487395
+## 8  2008        13425        1020   0.07061267
+## 9  2009        11327         840   0.06903920
+## 10 2010        14796         701   0.04523456
+## 11 2011        15012         625   0.03996930
+## 12 2012        13542         550   0.03902924
 ```
 
 ```r
@@ -675,8 +687,8 @@ print(prblm_3_3_df[prblm_3_3_df$Year == 2001, ])
 ```
 
 ```
-##      Year Arrest_FALSE Arrest_TRUE Arrest_ratio
-## 2001 2001        18517        2152    0.1041173
+##   Year Arrest.FALSE Arrest.TRUE Arrest.ratio
+## 1 2001        18517        2152    0.1041173
 ```
 
 ```r
@@ -790,15 +802,14 @@ We reject the null hypothesis i.e. we have evidence to conclude that am_fctr imp
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] lubridate_1.3.3 plyr_1.8.1      doBy_4.5-13     survival_2.38-1
-## [5] ggplot2_1.0.0  
+## [1] reshape2_1.4.1  lubridate_1.3.3 plyr_1.8.1      doBy_4.5-13    
+## [5] survival_2.38-1 ggplot2_1.0.0  
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] codetools_0.2-10 colorspace_1.2-5 digest_0.6.8     evaluate_0.5.5  
 ##  [5] formatR_1.0      grid_3.1.2       gtable_0.1.2     htmltools_0.2.6 
 ##  [9] knitr_1.9        labeling_0.3     lattice_0.20-30  MASS_7.3-39     
 ## [13] Matrix_1.1-5     memoise_0.2.1    munsell_0.4.2    proto_0.3-10    
-## [17] Rcpp_0.11.4      reshape2_1.4.1   rmarkdown_0.5.1  scales_0.2.4    
-## [21] splines_3.1.2    stringr_0.6.2    tcltk_3.1.2      tools_3.1.2     
-## [25] yaml_2.1.13
+## [17] Rcpp_0.11.4      rmarkdown_0.5.1  scales_0.2.4     splines_3.1.2   
+## [21] stringr_0.6.2    tcltk_3.1.2      tools_3.1.2      yaml_2.1.13
 ```

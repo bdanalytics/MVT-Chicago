@@ -121,19 +121,13 @@ entity_df <- mutate(entity_df,
     Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
     Year=year(Date.my),
     Month=months(Date.my),
+    Month_fctr=as.factor(Month),
     Weekday=weekdays(Date.my)
     
                     )
 
-predct_df <- mutate(predct_df, 
-    LocationDescription_fctr=as.factor(LocationDescription),
-    
-    Date.my=as.Date(strptime(Date, "%m/%d/%y %H:%M")),
-    Year=year(Date.my),    
-    Month=months(Date.my),
-    Weekday=weekdays(Date.my)
-    
-                    )
+# predct_df <- mutate(predct_df, 
+#                     )
 
 print(summary(entity_df))
 print(summary(predct_df))
@@ -152,12 +146,12 @@ print(which.max(table(entity_df$Weekday)))
 print(table(entity_df$Month, entity_df$Arrest))
 print(which.max(table(entity_df$Month, entity_df$Arrest)[, 2]))
 print(table(entity_df$Month, entity_df$Arrest))
-print(prblm_3_3_tbl <- table(entity_df$Year, entity_df$Arrest))
-print(prblm_3_3_df <- data.frame(Year=dimnames(prblm_3_3_tbl)[[1]],
-                                 Arrest_FALSE=prblm_3_3_tbl[, 1],
-                                 Arrest_TRUE =prblm_3_3_tbl[, 2]))
+print(xtabs(~ Month_fctr, entity_df))
+print(xtabs(~ Month_fctr + Arrest, entity_df))
+print(prblm_3_2_df <- mycreate_xtab(df=entity_df, xtab_col_names=c("Month", "Arrest")))
+print(prblm_3_3_df <- mycreate_xtab(df=entity_df, xtab_col_names=c("Year", "Arrest")))
 print(prblm_3_3_df <- mutate(prblm_3_3_df, 
-            Arrest_ratio=(Arrest_TRUE * 1.0) / (Arrest_TRUE + Arrest_FALSE))) 
+            Arrest.ratio=(Arrest.TRUE * 1.0) / (Arrest.TRUE + Arrest.FALSE))) 
 print(prblm_3_3_df[prblm_3_3_df$Year == 2001, ])
 
 # Other plots:
