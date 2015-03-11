@@ -582,7 +582,6 @@ print(table(entity_df$LocationDescription))</code></pre>
 ##   October   15744  1342
 ##   September 14812  1248</code></pre>
 <pre class="r"><code>print(prblm_3_2_df &lt;- mycreate_xtab(df=entity_df, xtab_col_names=c(&quot;Month&quot;, &quot;Arrest&quot;)))</code></pre>
-<pre><code>## Loading required package: reshape2</code></pre>
 <pre><code>##        Month Arrest.FALSE Arrest.TRUE
 ## 1      April        14028        1252
 ## 2     August        15243        1329
@@ -628,6 +627,66 @@ print(table(entity_df$LocationDescription))</code></pre>
 <pre class="r"><code>print(prblm_3_3_df[prblm_3_3_df$Year == 2001, ])</code></pre>
 <pre><code>##   Year Arrest.FALSE Arrest.TRUE Arrest.ratio
 ## 1 2001        18517        2152    0.1041173</code></pre>
+<pre class="r"><code># Identify top 5 locations apart from &quot;OTHER&quot;
+locations_df &lt;- as.data.frame(sort(table(entity_df$LocationDescription)))
+names(locations_df) &lt;- &quot;freq&quot;
+locations_df$name &lt;- rownames(locations_df)
+print(top5_locations_df &lt;- tail(subset(locations_df, name != &quot;OTHER&quot;), 5))</code></pre>
+<pre><code>##                                  freq                           name
+## DRIVEWAY - RESIDENTIAL           1675         DRIVEWAY - RESIDENTIAL
+## GAS STATION                      2111                    GAS STATION
+## ALLEY                            2308                          ALLEY
+## PARKING LOT/GARAGE(NON.RESID.)  14852 PARKING LOT/GARAGE(NON.RESID.)
+## STREET                         156564                         STREET</code></pre>
+<pre class="r"><code>print(sum(top5_locations_df$freq))</code></pre>
+<pre><code>## [1] 177510</code></pre>
+<pre class="r"><code># Extract obs that belong to the top 5 locations
+entity_top5_lcn_df &lt;- subset(entity_df, LocationDescription %in% top5_locations_df$name)
+print(nrow(entity_top5_lcn_df))</code></pre>
+<pre><code>## [1] 177510</code></pre>
+<pre class="r"><code>print(prblm_4_3_df &lt;- mycreate_xtab(df=entity_top5_lcn_df, 
+                            xtab_col_names=c(&quot;LocationDescription&quot;, &quot;Arrest&quot;)))</code></pre>
+<pre><code>##              LocationDescription Arrest.FALSE Arrest.TRUE
+## 1                          ALLEY         2059         249
+## 2         DRIVEWAY - RESIDENTIAL         1543         132
+## 3                    GAS STATION         1672         439
+## 4 PARKING LOT/GARAGE(NON.RESID.)        13249        1603
+## 5                         STREET       144969       11595</code></pre>
+<pre class="r"><code>print(prblm_4_3_df &lt;- mutate(prblm_4_3_df, 
+            Arrest.ratio=(Arrest.TRUE * 1.0) / (Arrest.TRUE + Arrest.FALSE)))</code></pre>
+<pre><code>##              LocationDescription Arrest.FALSE Arrest.TRUE Arrest.ratio
+## 1                          ALLEY         2059         249   0.10788562
+## 2         DRIVEWAY - RESIDENTIAL         1543         132   0.07880597
+## 3                    GAS STATION         1672         439   0.20795831
+## 4 PARKING LOT/GARAGE(NON.RESID.)        13249        1603   0.10793159
+## 5                         STREET       144969       11595   0.07405917</code></pre>
+<pre class="r"><code>print(orderBy(~ -Arrest.ratio, prblm_4_3_df))</code></pre>
+<pre><code>##              LocationDescription Arrest.FALSE Arrest.TRUE Arrest.ratio
+## 3                    GAS STATION         1672         439   0.20795831
+## 4 PARKING LOT/GARAGE(NON.RESID.)        13249        1603   0.10793159
+## 1                          ALLEY         2059         249   0.10788562
+## 2         DRIVEWAY - RESIDENTIAL         1543         132   0.07880597
+## 5                         STREET       144969       11595   0.07405917</code></pre>
+<pre class="r"><code>print(prblm_4_4_df &lt;- mycreate_xtab(df=entity_top5_lcn_df, 
+                            xtab_col_names=c(&quot;LocationDescription&quot;, &quot;Weekday&quot;)))</code></pre>
+<pre><code>##              LocationDescription Weekday.Friday Weekday.Monday
+## 1                          ALLEY            385            320
+## 2         DRIVEWAY - RESIDENTIAL            257            255
+## 3                    GAS STATION            332            280
+## 4 PARKING LOT/GARAGE(NON.RESID.)           2331           2128
+## 5                         STREET          23773          22305
+##   Weekday.Saturday Weekday.Sunday Weekday.Thursday Weekday.Tuesday
+## 1              341            307              315             323
+## 2              202            221              263             243
+## 3              338            336              282             270
+## 4             2199           1936             2082            2073
+## 5            22175          21756            22296           21888
+##   Weekday.Wednesday
+## 1               317
+## 2               234
+## 3               273
+## 4              2103
+## 5             22371</code></pre>
 <pre class="r"><code># Other plots:
 print(myplot_histogram(entity_df, &quot;Date.my&quot;))</code></pre>
 <pre><code>## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.</code></pre>

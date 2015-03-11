@@ -622,10 +622,6 @@ print(prblm_3_2_df <- mycreate_xtab(df=entity_df, xtab_col_names=c("Month", "Arr
 ```
 
 ```
-## Loading required package: reshape2
-```
-
-```
 ##        Month Arrest.FALSE Arrest.TRUE
 ## 1      April        14028        1252
 ## 2     August        15243        1329
@@ -689,6 +685,108 @@ print(prblm_3_3_df[prblm_3_3_df$Year == 2001, ])
 ```
 ##   Year Arrest.FALSE Arrest.TRUE Arrest.ratio
 ## 1 2001        18517        2152    0.1041173
+```
+
+```r
+# Identify top 5 locations apart from "OTHER"
+locations_df <- as.data.frame(sort(table(entity_df$LocationDescription)))
+names(locations_df) <- "freq"
+locations_df$name <- rownames(locations_df)
+print(top5_locations_df <- tail(subset(locations_df, name != "OTHER"), 5))
+```
+
+```
+##                                  freq                           name
+## DRIVEWAY - RESIDENTIAL           1675         DRIVEWAY - RESIDENTIAL
+## GAS STATION                      2111                    GAS STATION
+## ALLEY                            2308                          ALLEY
+## PARKING LOT/GARAGE(NON.RESID.)  14852 PARKING LOT/GARAGE(NON.RESID.)
+## STREET                         156564                         STREET
+```
+
+```r
+print(sum(top5_locations_df$freq))
+```
+
+```
+## [1] 177510
+```
+
+```r
+# Extract obs that belong to the top 5 locations
+entity_top5_lcn_df <- subset(entity_df, LocationDescription %in% top5_locations_df$name)
+print(nrow(entity_top5_lcn_df))
+```
+
+```
+## [1] 177510
+```
+
+```r
+print(prblm_4_3_df <- mycreate_xtab(df=entity_top5_lcn_df, 
+                            xtab_col_names=c("LocationDescription", "Arrest")))
+```
+
+```
+##              LocationDescription Arrest.FALSE Arrest.TRUE
+## 1                          ALLEY         2059         249
+## 2         DRIVEWAY - RESIDENTIAL         1543         132
+## 3                    GAS STATION         1672         439
+## 4 PARKING LOT/GARAGE(NON.RESID.)        13249        1603
+## 5                         STREET       144969       11595
+```
+
+```r
+print(prblm_4_3_df <- mutate(prblm_4_3_df, 
+            Arrest.ratio=(Arrest.TRUE * 1.0) / (Arrest.TRUE + Arrest.FALSE)))
+```
+
+```
+##              LocationDescription Arrest.FALSE Arrest.TRUE Arrest.ratio
+## 1                          ALLEY         2059         249   0.10788562
+## 2         DRIVEWAY - RESIDENTIAL         1543         132   0.07880597
+## 3                    GAS STATION         1672         439   0.20795831
+## 4 PARKING LOT/GARAGE(NON.RESID.)        13249        1603   0.10793159
+## 5                         STREET       144969       11595   0.07405917
+```
+
+```r
+print(orderBy(~ -Arrest.ratio, prblm_4_3_df))
+```
+
+```
+##              LocationDescription Arrest.FALSE Arrest.TRUE Arrest.ratio
+## 3                    GAS STATION         1672         439   0.20795831
+## 4 PARKING LOT/GARAGE(NON.RESID.)        13249        1603   0.10793159
+## 1                          ALLEY         2059         249   0.10788562
+## 2         DRIVEWAY - RESIDENTIAL         1543         132   0.07880597
+## 5                         STREET       144969       11595   0.07405917
+```
+
+```r
+print(prblm_4_4_df <- mycreate_xtab(df=entity_top5_lcn_df, 
+                            xtab_col_names=c("LocationDescription", "Weekday")))
+```
+
+```
+##              LocationDescription Weekday.Friday Weekday.Monday
+## 1                          ALLEY            385            320
+## 2         DRIVEWAY - RESIDENTIAL            257            255
+## 3                    GAS STATION            332            280
+## 4 PARKING LOT/GARAGE(NON.RESID.)           2331           2128
+## 5                         STREET          23773          22305
+##   Weekday.Saturday Weekday.Sunday Weekday.Thursday Weekday.Tuesday
+## 1              341            307              315             323
+## 2              202            221              263             243
+## 3              338            336              282             270
+## 4             2199           1936             2082            2073
+## 5            22175          21756            22296           21888
+##   Weekday.Wednesday
+## 1               317
+## 2               234
+## 3               273
+## 4              2103
+## 5             22371
 ```
 
 ```r

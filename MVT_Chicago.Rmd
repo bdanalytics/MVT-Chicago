@@ -154,6 +154,25 @@ print(prblm_3_3_df <- mutate(prblm_3_3_df,
             Arrest.ratio=(Arrest.TRUE * 1.0) / (Arrest.TRUE + Arrest.FALSE))) 
 print(prblm_3_3_df[prblm_3_3_df$Year == 2001, ])
 
+# Identify top 5 locations apart from "OTHER"
+locations_df <- as.data.frame(sort(table(entity_df$LocationDescription)))
+names(locations_df) <- "freq"
+locations_df$name <- rownames(locations_df)
+print(top5_locations_df <- tail(subset(locations_df, name != "OTHER"), 5))
+print(sum(top5_locations_df$freq))
+
+# Extract obs that belong to the top 5 locations
+entity_top5_lcn_df <- subset(entity_df, LocationDescription %in% top5_locations_df$name)
+print(nrow(entity_top5_lcn_df))
+print(prblm_4_3_df <- mycreate_xtab(df=entity_top5_lcn_df, 
+                            xtab_col_names=c("LocationDescription", "Arrest")))
+print(prblm_4_3_df <- mutate(prblm_4_3_df, 
+            Arrest.ratio=(Arrest.TRUE * 1.0) / (Arrest.TRUE + Arrest.FALSE)))
+print(orderBy(~ -Arrest.ratio, prblm_4_3_df))
+
+print(prblm_4_4_df <- mycreate_xtab(df=entity_top5_lcn_df, 
+                            xtab_col_names=c("LocationDescription", "Weekday")))
+
 # Other plots:
 print(myplot_histogram(entity_df, "Date.my"))
 print(myplot_box(df=entity_df, ycol_names="Date.my"))
