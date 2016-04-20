@@ -175,7 +175,7 @@ glb_rsp_var_out <- paste0(glb_rsp_var, ".predict.") # model_id is appended later
 # Longitude: the longitude of the location at which the crime occurred.
 
 glb_id_vars <- c("ID")
-glb_category_vars <- NULL # or c("<var1>", "<var2>")
+glb_category_vars <- c("LocationDescription.my") # or NULL
 glb_date_vars <- c("Date")
 
 glb_txt_vars <- NULL # or c("<txt_var1>", "<txt_var2>")   
@@ -652,7 +652,7 @@ dsp_numeric_feats_dstrb <- function(feats_vctr) {
     for (feat in feats_vctr) {
         print(sprintf("feat: %s", feat))
         if (glb_is_regression)
-            gp <- myplot_scatter(df=glb_allobs_df, ycol_name=glb_rsp_feat, xcol_name=feat,
+            gp <- myplot_scatter(df=glb_allobs_df, ycol_name=glb_rsp_var, xcol_name=feat,
                                  smooth=TRUE)
         if (glb_is_classification)
             gp <- myplot_box(df=glb_allobs_df, ycol_names=feat, xcol_name=glb_rsp_var)
@@ -1982,11 +1982,11 @@ dsp_class_dstrb <- function(obs_df, location_var, partition_var) {
 if (!is.null(glb_category_vars)) {
     dsp_class_dstrb(glb_allobs_df, ".lcn", glb_rsp_var_raw)
     newent_ctgry_df <- mycreate_sqlxtab_df(subset(glb_allobs_df, .src == "Test"), 
-                                           "myCategory")
+                                           glb_category_vars)
     OOBobs_ctgry_df <- mycreate_sqlxtab_df(subset(glb_allobs_df, .lcn == "OOB"), 
-                                           "myCategory")
-    glb_ctgry_df <- merge(newent_ctgry_df, OOBobs_ctgry_df, by="myCategory", all=TRUE, 
-                          suffixes=c(".Tst", ".OOB"))
+                                           glb_category_vars)
+    glb_ctgry_df <- merge(newent_ctgry_df, OOBobs_ctgry_df, by=glb_category_vars
+                          , all=TRUE, suffixes=c(".Tst", ".OOB"))
     glb_ctgry_df$.freqRatio.Tst <- glb_ctgry_df$.n.Tst / sum(glb_ctgry_df$.n.Tst, na.rm=TRUE)
     glb_ctgry_df$.freqRatio.OOB <- glb_ctgry_df$.n.OOB / sum(glb_ctgry_df$.n.OOB, na.rm=TRUE)
     print(orderBy(~-.freqRatio.Tst-.freqRatio.OOB, glb_ctgry_df))
@@ -2934,16 +2934,18 @@ if (glb_is_classification) {
     print(t(confusionMatrix(glb_OOBobs_df[, paste0(glb_rsp_var_out, glb_sel_mdl_id)], 
                             glb_OOBobs_df[, glb_rsp_var])$table))
 
-#     tmp_OOBobs_df <- glb_OOBobs_df[, c("myCategory", predct_accurate_var_name)]
-#     names(tmp_OOBobs_df)[2] <- "accurate.OOB"
-#     aOOB_ctgry_df <- mycreate_xtab_df(tmp_OOBobs_df, names(tmp_OOBobs_df)) 
-#     aOOB_ctgry_df[is.na(aOOB_ctgry_df)] <- 0
-#     aOOB_ctgry_df <- mutate(aOOB_ctgry_df, 
-#                             .n.OOB = accurate.OOB.FALSE + accurate.OOB.TRUE,
-#                             max.accuracy.OOB = accurate.OOB.TRUE / .n.OOB)
-#     intersect(names(glb_ctgry_df), names(aOOB_ctgry_df))
-#     glb_ctgry_df <- merge(glb_ctgry_df, aOOB_ctgry_df, all=TRUE)
-#     print(orderBy(~-accurate.OOB.FALSE, glb_ctgry_df))
+    if (!is.null(glb_category_vars)) {
+        tmp_OOBobs_df <- glb_OOBobs_df[, c(glb_category_vars, predct_accurate_var_name)]
+        names(tmp_OOBobs_df)[length(names(tmp_OOBobs_df))] <- "accurate.OOB"
+        aOOB_ctgry_df <- mycreate_xtab_df(tmp_OOBobs_df, names(tmp_OOBobs_df)) 
+        aOOB_ctgry_df[is.na(aOOB_ctgry_df)] <- 0
+        aOOB_ctgry_df <- mutate(aOOB_ctgry_df, 
+                                .n.OOB = accurate.OOB.FALSE + accurate.OOB.TRUE,
+                                max.accuracy.OOB = accurate.OOB.TRUE / .n.OOB)
+        #intersect(names(glb_ctgry_df), names(aOOB_ctgry_df))
+        glb_ctgry_df <- merge(glb_ctgry_df, aOOB_ctgry_df, all=TRUE)
+        print(orderBy(~-accurate.OOB.FALSE, glb_ctgry_df))
+    }
 }    
 
 dsp_myCategory_conf_mtrx <- function(myCategory) {
